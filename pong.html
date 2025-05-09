@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #1c1c1c, #000);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      border: 4px solid #fff;
+      background: #111;
+      box-shadow: 0 0 20px #fff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pong" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("pong");
+    const ctx = canvas.getContext("2d");
+
+    let paddleWidth = 10, paddleHeight = 80;
+    let playerY = canvas.height / 2 - paddleHeight / 2;
+    let aiY = playerY;
+    let ball = { x: canvas.width/2, y: canvas.height/2, radius: 8, speed: 5, dx: 5, dy: 5 };
+
+    function drawRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    }
+    function drawCircle(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    function drawNet() {
+      for (let i = 0; i < canvas.height; i += 15)
+        drawRect(canvas.width/2 - 1, i, 2, 10, "#fff");
+    }
+    function resetBall() {
+      ball.x = canvas.width/2;
+      ball.y = canvas.height/2;
+      ball.dx = -ball.dx;
+    }
+    function update() {
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+
+      if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height)
+        ball.dy = -ball.dy;
+
+      if (ball.x - ball.radius < paddleWidth &&
+          ball.y > playerY && ball.y < playerY + paddleHeight) {
+        ball.dx = -ball.dx;
+      }
+
+      if (ball.x + ball.radius > canvas.width - paddleWidth &&
+          ball.y > aiY && ball.y < aiY + paddleHeight) {
+        ball.dx = -ball.dx;
+      }
+
+      if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+        resetBall();
+      }
+
+      aiY += (ball.y - (aiY + paddleHeight / 2)) * 0.09;
+    }
+    function draw() {
+      drawRect(0, 0, canvas.width, canvas.height, "#000");
+      drawNet();
+      drawRect(0, playerY, paddleWidth, paddleHeight, "#fff");
+      drawRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight, "#fff");
+      drawCircle(ball.x, ball.y, ball.radius, "#fff");
+    }
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    document.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      playerY = e.clientY - rect.top - paddleHeight / 2;
+    });
+    loop();
+  </script>
+</body>
+</html>
